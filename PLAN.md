@@ -75,17 +75,27 @@ pideploy/
 
 ## 4. Done
 
-- ✅ Core CLI with all commands above
-- ✅ Config system: built-in → global (`~/.config/pideploy/config`) → repo
-  (`.pideploy.conf`) → flags
-- ✅ Per-repo runner as user systemd service (no root; one-time `enable-linger`)
-- ✅ Stack detection for Dockerfile (node / python / go / static fallback)
-- ✅ `.pideploy.conf` generation (secret-free, version-controlled)
-- ✅ `.gitignore` auto-protects `.env`; workflow omits `pull_request` (public-repo safety)
-- ✅ AI-ready `--agent` manual
-- ✅ Beautiful output primitives (banner, box, section, glyphs, spinner; NO_COLOR aware)
-- ✅ Hermetic test suite — 64 checks, all passing
-- ✅ PII scrub verified (no username/email/tailnet/IP/token hardcoded)
+- ✅ **Plain, AI-optimized CLI** (replaced the early TUI): data→stdout, diagnostics→stderr,
+  exit codes 0/1/2, `--json` on data commands, never prompts. Format-aware JSON errors.
+- ✅ Commands: init, **onboard**, deploy, status, serve/unserve, logs, config
+  (list/get/set/edit/**template**/path), **env**, rm, **setup**, doctor, agent, skill, help.
+- ✅ **Host-scoped config** (`~/.config/pideploy/config`) reused across repos; built-in →
+  host → repo (`.pideploy.conf`) → flags precedence.
+- ✅ **`config template` + committed `config.example`** (placeholders) + gitignore guards.
+- ✅ Per-repo runner as user systemd service; **label-based routing** (no IP/SSH/target).
+- ✅ Stack detection for Dockerfile (node / python / go / static fallback).
+- ✅ **`.env` → GitHub Actions secret** (`gh secret set`), recreated on the runner and
+  wiped after; `.pideploy.conf` is secret-free (name only). Leak-guard tests included.
+- ✅ Workflow omits `pull_request` (public-repo + self-hosted-runner safety).
+- ✅ AI-ready: `--agent` manual, `--skill`, **`AGENTS.md`**, per-command `help`.
+- ✅ Hermetic test suite — **153 checks**, all passing (incl. JSON-shape, error-shape,
+  leak-safety, workflow-YAML validity).
+- ✅ PII scrub verified (no username/email/tailnet/IP/token/hostname in the repo).
+- ✅ **Live end-to-end deploy verified** on a real multi-service app (Fetch): onboard →
+  push → label-routed to the Pi runner → checkout → provision `.env` → build →
+  `docker compose up` → cleanup; `conclusion=success`, containers healthy. No secret
+  leakage in the public Actions log (verified).
+- ✅ Published public: github.com/&lt;owner&gt;/pideploy (MIT, install.sh, one-line install).
 
 ---
 
@@ -107,21 +117,22 @@ pideploy/
 - ⬜ Optional arrow-key menu (fallback to numbered) — nicer but must stay portable
 
 ### Features
-- ⬜ `pideploy setup` — one-time host bootstrap (enable-linger, tailscale operator,
-  verify Portainer) so new users run a single command
+- ✅ `pideploy setup` — one-time host bootstrap (enable-linger, tailscale operator)
+- ✅ `pideploy onboard <repo>` — clone + init on the host in one step
+- ✅ `.env` → GitHub Actions secret provisioning + cleanup
+- ✅ Host-scoped config + shareable template
 - ⬜ **Multi-app serve**: `tailscale serve --https=443 <port>` maps the whole root,
   so a second app collides. Add path-based serve (`--set-path /app`) or per-app
   subdomains. **Known limitation today: one served app per host root.**
-- ⬜ `pideploy open` — print/launch the app's tailnet URL
-- ⬜ Optional Portainer **API** integration (create a true Git stack) for users who
-  want Portainer to own the deploy lifecycle instead of the runner
-- ⬜ Org-level runner mode (one shared runner for many repos under a GitHub org)
+- ⬜ `pideploy open` / `url` — print/launch the app's tailnet URL
+- ⬜ Optional Portainer **API** integration (create a true Git stack) instead of compose
+- ⬜ Org-level shared-runner mode (one runner, many repos — needs a GitHub org)
 - ⬜ Rollback helper (`pideploy rollback` → redeploy previous image/tag)
 
 ### CI / quality
 - ⬜ GitHub Actions workflow running `tests/run.sh` on push/PR (ironic but needed)
 - ⬜ `shellcheck` clean pass in CI
-- ⬜ Live smoke test on a real throwaway repo (mocked suite is green; real run pending)
+- ✅ Live smoke test on a real app — done (Fetch, green)
 
 ---
 
