@@ -22,6 +22,13 @@ assert_fail()     { if eval "$2" >/dev/null 2>&1; then bad "$1" "expected failur
 assert_file()     { [ -f "$2" ] && ok "$1" || bad "$1" "missing file: $2"; }
 assert_exit()     { local r; eval "$2" >/dev/null 2>&1; r=$?; [ "$r" = "$3" ] && ok "$1" || bad "$1" "exit want=$3 got=$r"; }
 assert_json()     { if command -v python3 >/dev/null 2>&1; then printf '%s' "$2" | python3 -m json.tool >/dev/null 2>&1 && ok "$1" || bad "$1" "invalid JSON: $2"; else ok "$1 (skip: no python3)"; fi; }
+# assert_struct <name> <json> <python-bool-expr over `d`>  — strict shape/type check
+assert_struct()   {
+  if ! command -v python3 >/dev/null 2>&1; then ok "$1 (skip: no python3)"; return; fi
+  if printf '%s' "$2" | python3 -c "import sys,json
+d=json.load(sys.stdin)
+assert ($3), 'shape check failed'" 2>/dev/null; then ok "$1"; else bad "$1" "bad shape/type: $2"; fi
+}
 
 # ── sandbox ──────────────────────────────────────────────────────────────────
 SBOX="$(mktemp -d)"; trap 'rm -rf "$SBOX"' EXIT
@@ -269,13 +276,6 @@ assert_absent   "--no-dotenv: no secret value in workflow"      "$(cat "$NOENV/.
 
 # ════════════════════════════════════════════════════════════════════════════
 grp "AI contract: JSON output"
-# assert_struct <name> <json> <python-bool-expr over `d`>  — strict shape/type check
-assert_struct() {
-  if ! command -v python3 >/dev/null 2>&1; then ok "$1 (skip: no python3)"; return; fi
-  if printf '%s' "$2" | python3 -c "import sys,json
-d=json.load(sys.stdin)
-assert ($3), 'shape check failed'" 2>/dev/null; then ok "$1"; else bad "$1" "bad shape/type: $2"; fi
-}
 assert_json "config --json is valid"  "$($BIN config list --json)"
 assert_json "status --json is valid"  "$(cd "$REPO" && $BIN status --json 2>/dev/null)"
 assert_json "doctor --json is valid"  "$($BIN doctor --json 2>/dev/null || true)"

@@ -15,8 +15,9 @@
 
 [Quick start](#-60-second-quick-start) · [Setup](#-prerequisites--setup) · [How it works](#-how-it-works) · [Commands](#-command-reference) · [Security](#-security-model) · [AI-ready](#-ai-ready)
 
+![ci](https://github.com/Traves-Theberge/pideploy/actions/workflows/ci.yml/badge.svg)
 ![shell](https://img.shields.io/badge/shell-bash-4EAA25?logo=gnubash&logoColor=white)
-![tests](https://img.shields.io/badge/tests-101%20passing-32CD32)
+![tests](https://img.shields.io/badge/tests-154%20hermetic-32CD32)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 ![self-hosted](https://img.shields.io/badge/self--hosted-Raspberry%20Pi-C51A4A?logo=raspberrypi&logoColor=white)
 
@@ -397,14 +398,14 @@ Plus the machine-friendly contract every command honors: **data on stdout, diagn
 
 ## 🧪 Development & tests
 
-The test suite is **hermetic** — it mocks `gh`, `docker`, `tailscale`, `systemctl`, and `loginctl`, so it never touches real services and needs no network.
+The test suite is **hermetic** — it mocks `gh`, `docker`, `tailscale`, `systemctl`, and `loginctl`, so it never touches real services and needs no network. It runs in **CI** (`.github/workflows/ci.yml`) on every push/PR, alongside `shellcheck`.
 
 ```bash
-tests/run.sh            # run all checks
+tests/run.sh            # run all 154 checks
 tests/run.sh -v         # verbose (show every passing assertion)
 ```
 
-Covers pure functions, the config precedence chain, every command's surface, the agent manual, and a full mocked `init → status → serve → deploy → rm` integration flow.
+Covers pure functions, the config precedence chain (built-in → host → repo → flags), every command's surface, JSON shape/type and error-shape, secret leak-safety, generated-workflow YAML validity, and a full mocked `init → status → serve → deploy → rm` integration flow.
 
 ---
 

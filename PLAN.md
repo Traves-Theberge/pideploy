@@ -130,8 +130,8 @@ pideploy/
 - ⬜ Rollback helper (`pideploy rollback` → redeploy previous image/tag)
 
 ### CI / quality
-- ⬜ GitHub Actions workflow running `tests/run.sh` on push/PR (ironic but needed)
-- ⬜ `shellcheck` clean pass in CI
+- ✅ GitHub Actions workflow running `tests/run.sh` on push/PR (`.github/workflows/ci.yml`)
+- ✅ `shellcheck --severity=error` gate in CI (clean)
 - ✅ Live smoke test on a real app — done (Fetch, green)
 
 ---
