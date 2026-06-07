@@ -678,6 +678,19 @@ HOW IT WORKS
   on a tailnet-only network. Portainer shares the Docker engine (sees your apps);
   'serve' exposes a port over Tailscale with HTTPS.
 
+GETTING STARTED  (do this first)
+  1. pideploy setup                      prepare this host (linger + tailscale)  [once]
+  2. pideploy doctor                     confirm prerequisites are ok
+  3. cd <your-repo>                      a repo with a GitHub remote
+  4. pideploy init --port <port>         scaffold + register runner + first deploy
+  5. pideploy serve <port>               expose over Tailscale (prints the URL)
+  Then just 'git push' to redeploy.
+
+FOR AI AGENTS
+  pideploy --agent                       full operating manual (read this first)
+  pideploy --skill > .claude/skills/pideploy/SKILL.md    install a Claude Code skill
+  pideploy help <command>                detailed help + options for one command
+
 USAGE
   pideploy <command> [args] [--json]
 
