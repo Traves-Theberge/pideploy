@@ -2,7 +2,7 @@
 
 > Run a CLI in any git repo → every push builds the app with Docker on a
 > Raspberry Pi, it appears in Portainer, and it's reachable anywhere over
-> Tailscale. Beautiful, configurable, and AI-ready.
+> Tailscale. Plain, scriptable, and AI-ready.
 
 Status legend: ✅ done · 🟡 in progress · ⬜ todo
 
@@ -32,7 +32,8 @@ Status legend: ✅ done · 🟡 in progress · ⬜ todo
 - **Portainer integration is implicit**: runner and Portainer share one Docker
   engine, so `docker compose up` stacks show up in Portainer automatically.
   Compose `name:` = the stack name shown there.
-- **Exposure** via `tailscale serve --https=443 <port>`; apps bind `127.0.0.1` only.
+- **Exposure** via `pideploy serve` (path-based Tailscale HTTPS; many apps coexist at
+  `https://<host>/<app>`); apps bind `127.0.0.1` only.
 - **Secrets never in git**: `.pideploy.conf` holds only port/name/branch; `.env`
   is gitignored; real secrets live in GitHub Actions secrets or Portainer env.
 
@@ -49,7 +50,7 @@ pideploy/
 ├── install.sh            ✅ installer (symlink into ~/.local/bin + doctor)
 ├── .gitignore            ✅
 └── tests/
-    ├── run.sh            ✅ hermetic suite (65 checks, all green)
+    ├── run.sh            ✅ hermetic suite (203 checks, all green)
     └── mocks/            ✅ gh, docker, tailscale, systemctl, loginctl
 ```
 
@@ -59,17 +60,18 @@ pideploy/
 
 | Command | Status | Notes |
 |---------|--------|-------|
-| `pideploy` (menu) | ✅ | numbered interactive menu |
+| `init` / `onboard` | ✅ | scaffold/clone + runner + `.pideploy.conf` + push |
 | `init` | ✅ | scaffold + runner + `.pideploy.conf` + push |
 | `deploy` | ✅ | workflow_dispatch, else empty commit |
 | `status` | ✅ | runners + containers + serve + linger |
-| `serve` / `unserve` | ✅ | Tailscale HTTPS expose |
+| `serve` / `unserve` | ✅ | path-based Tailscale HTTPS (many apps coexist) |
+| `ports` / `env` / `setup` | ✅ | port registry · .env→secret · host prep |
 | `logs` | ✅ | tail container logs |
 | `config` | ✅ | list/get/set/edit; global + per-repo precedence |
 | `rm` | ✅ | deregister this repo's runner |
 | `doctor` | ✅ | prerequisite/health check |
-| `agent` / `--agent` | ✅ | full operating manual for AI agents |
-| `version` / `help` | ✅ | |
+| `agent` / `skill` / `help` | ✅ | manual · installable skill · per-command help |
+| `config` (+`template`/`path`) | ✅ | host config; built-in→host→repo→flag precedence |
 
 ---
 
@@ -141,15 +143,16 @@ pideploy/
 
 ## 6. Outstanding tests
 
-Current suite: **64 checks** across unit / config / CLI / agent / integration / guards.
+Current suite: **203 checks** across unit / config / host-config / CLI / agent / help /
+integration / secrets / ports / multi-app serve / AI-contract / guards.
 
 To add:
-- ⬜ `logs` command (needs a non-following test mode or a mock that exits)
+- ✅ `logs` command (tails first/explicit container)
 - ⬜ `config edit` (EDITOR stub)
 - ⬜ `serve` operator-denied → sudo fallback path
 - ⬜ `doctor` failure paths (simulate missing `gh` / not in docker group / linger off)
-- ⬜ Multi-app serve collision behavior (once feature exists)
-- ⬜ `unserve` removes the *specific* port mapping (when multi-app lands)
+- ✅ Multi-app serve (path default, --port-mode, --json shape)
+- ✅ `unserve` path/port-mode variants
 - ⬜ `init` when Dockerfile/compose already exist (keep-existing branch) — partial
 - ⬜ Menu dispatch routing (drive choices via piped stdin)
 - ⬜ `--no-color` / `NO_COLOR` produces zero ANSI in all command outputs
