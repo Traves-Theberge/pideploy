@@ -194,7 +194,7 @@ assert_contains "help status: documents deploy_host json" "$($BIN help status)" 
 assert_contains "<cmd> --help routes" "$($BIN serve --help)" "Tailscale"
 assert_contains "-h routes to help"   "$($BIN status -h)" "status"
 # completeness: EVERY dispatchable command resolves to a help section (no gaps)
-for c in init onboard deploy status serve unserve logs config ports env rm setup doctor agent skill help version; do
+for c in init onboard deploy status serve unserve url open logs config ports env rm setup doctor agent skill help version; do
   assert_ok "help section exists: $c" "$BIN help $c"
 done
 assert_fail     "help unknown cmd → error" "$BIN help nope"
@@ -334,6 +334,11 @@ assert_ok       "unserve --path runs"               "(cd '$REPO' && $BIN unserve
 assert_ok       "unserve --port-mode runs"          "(cd '$REPO' && $BIN unserve 8080 --port-mode)"
 assert_ok       "unserve default runs"              "(cd '$REPO' && $BIN unserve)"
 assert_exit     "serve unknown flag → 2"            "$BIN serve 8080 --bogus" 2
+# url: report the app's endpoint (served URL when exposed, else local)
+assert_contains "url: served endpoint in a repo"    "$(cd "$REPO" && $BIN url 2>/dev/null)" "test-pi.tailnet.ts.net/testrepo"
+assert_struct   "url --json shape & served flag"    "$(cd "$REPO" && $BIN url --json 2>/dev/null)" \
+  "d['served'] is True and d['url'].endswith('/testrepo') and isinstance(d['port'],int) and d['local'].startswith('http://127.0.0.1')"
+assert_contains "url: falls back to local when not served" "$(cd "$SBOX/fx-repo" && $BIN url 2>&1)" "127.0.0.1:7777"
 
 # ════════════════════════════════════════════════════════════════════════════
 grp "Secrets: no leakage"

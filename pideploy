@@ -382,6 +382,27 @@ cmd_unserve() {
   fi
 }
 
+cmd_url() { # print the endpoint for the current repo's app (served URL, else local)
+  local open=false; [ "${1:-}" = "--open" ] && open=true
+  local host port app served_path="" url="" local_url
+  host=$(tailnet_host); port=$(cfg default_port); app=$(cfg app_name)
+  [ -n "$port" ] || die "no port known — run inside a repo (with .pideploy.conf) or 'pideploy ports'"
+  local_url="http://127.0.0.1:$port/"
+  # is this app's port currently served over Tailscale? find its path
+  served_path=$(tailscale serve status 2>/dev/null | awk -v p="127.0.0.1:$port" '$0 ~ p {for(i=1;i<=NF;i++) if(substr($i,1,1)=="/"){print $i; exit}}')
+  [ -n "$served_path" ] && { url="https://${host:-localhost}${served_path}"; [ "$served_path" = "/" ] && url="https://${host:-localhost}/"; }
+  if [ "$FORMAT" = json ]; then
+    printf '{"app":%s,"port":%s,"local":%s,"served":%s,"url":%s,"path":%s}\n' \
+      "$(json_str "$app")" "$port" "$(json_str "$local_url")" "$([ -n "$served_path" ] && echo true || echo false)" \
+      "$(json_str "${url:-}")" "$(json_str "${served_path:-}")"
+  else
+    if [ -n "$url" ]; then printf '%s\n' "$url"
+    else printf '%s\n' "$local_url"; warn "not exposed over Tailscale yet — run: pideploy serve"; fi
+  fi
+  [ "$open" = true ] && [ -n "${url:-}" ] && command -v xdg-open >/dev/null 2>&1 && xdg-open "$url" >/dev/null 2>&1 || true
+  return 0
+}
+
 cmd_status() {
   # gather ------------------------------------------------------------------
   local dhost phost; dhost=$(cfg deploy_host); phost=$(cfg portainer_url)
@@ -651,6 +672,8 @@ Result: containers run on the host's Docker engine (visible in Portainer);
 - `pideploy serve [port] [--path /name] [--port-mode] [--json]` — expose a port over
   Tailscale HTTPS; prints the URL on stdout. Path-based by default (many apps coexist).
 - `pideploy unserve [port] [--path /name] [--port-mode]` — remove one app's route.
+- `pideploy url [--json]` / `pideploy open` — print (or open) THIS repo's app endpoint:
+  the served https URL if exposed, else the local http://127.0.0.1:<port>/.
 - `pideploy logs [app]` — exec `docker logs -f` (stdout passthrough).
 - `pideploy config [list|get <k>|set <k> <v>|edit] [--json]` — manage defaults.
 - `pideploy ports [--json]` — list the host port registry (repo→port).
@@ -819,6 +842,17 @@ H
     logs) cat <<'H'
 pideploy logs — tail a deployed app's container logs (follows; Ctrl-C to stop).
 USAGE   pideploy logs [app]      # app defaults to the first running container
+H
+;;
+    url|open) cat <<'H'
+pideploy url — print THIS repo's app endpoint. If the app's port is currently
+served over Tailscale, prints that https URL; otherwise prints the local
+http://127.0.0.1:<port>/ and reminds you to `pideploy serve`. `pideploy open`
+does the same and launches it in a browser (if one is available).
+
+USAGE   pideploy url [--json]      # run inside the repo (uses .pideploy.conf)
+        pideploy open
+OUTPUT  stdout: the URL (or JSON {app,port,local,served,url,path}).
 H
 ;;
     env) cat <<'H'
@@ -994,6 +1028,7 @@ then edit. NEVER commit a real host config or .env — only the placeholder temp
 3. `pideploy init --port <P> --json`   → scaffold, register runner, push (first deploy).
 4. `pideploy status --json`            → confirm runner active and stack is up.
 5. `pideploy serve <P>`                → stdout is the public https URL.
+6. `pideploy url`                      → reprint this app's endpoint anytime.
 - Redeploy after changes: `git push` (or `pideploy deploy`).
 - Tear down a repo's runner: `pideploy rm`.
 
@@ -1010,8 +1045,8 @@ then edit. NEVER commit a real host config or .env — only the placeholder temp
 ## Command quick reference
 `setup` host prep · `doctor` prereqs · `config template` host config · `init` set up repo ·
 `onboard <repo>` clone+init on host · `deploy` redeploy now · `status` state ·
-`serve`/`unserve` expose · `logs` tail · `config` defaults · `ports` port registry ·
-`env` sync .env→secret · `rm` remove runner · `agent` manual · `skill` this skill · `help <cmd>`.
+`serve`/`unserve` expose · `url`/`open` app endpoint · `logs` tail · `config` defaults ·
+`ports` port registry · `env` sync .env→secret · `rm` remove runner · `agent` · `skill` · `help <cmd>`.
 Add `--json` to init/status/deploy/serve/config/doctor.
 SKILL
 }
@@ -1057,6 +1092,7 @@ COMMANDS
   deploy                                    trigger a deploy now (no code change needed)
   status                                    list runners, running stacks, serve, linger
   serve <port> | unserve <port>             expose / stop exposing a port (Tailscale HTTPS)
+  url | open                                print (or open) this app's endpoint URL
   logs [app]                                tail a deployed app's container logs
   config list|get|set|edit|template|path    view/change defaults; 'template' prints a host-config example
   ports                                     list which repo uses which port (host registry)
@@ -1100,6 +1136,8 @@ main() {
     status)  cmd_status  "${args[@]}";;
     serve)   cmd_serve   "${args[@]}";;
     unserve) cmd_unserve "${args[@]}";;
+    url)     cmd_url     "${args[@]}";;
+    open)    cmd_url --open "${args[@]}";;
     logs)    cmd_logs    "${args[@]}";;
     config)  cmd_config  "${args[@]}";;
     env)     cmd_env     "${args[@]}";;

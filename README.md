@@ -294,6 +294,7 @@ All data commands accept `--json`. Run `pideploy help <command>` for every optio
 | `pideploy deploy` | Trigger a deploy now (workflow_dispatch, else empty commit) |
 | `pideploy status` | Runners, running stacks, Tailscale serve, linger |
 | `pideploy serve [port] [--path /name] [--port-mode]` / `unserve …` | Expose / stop exposing over Tailscale HTTPS (path-based; many apps coexist) |
+| `pideploy url` / `open` | Print (or open) this repo's app endpoint URL |
 | `pideploy logs [app]` | Tail a deployed app's logs |
 | `pideploy config [list\|get\|set\|edit]` | Manage defaults |
 | `pideploy ports` | List which repo uses which port (host registry) |
@@ -389,6 +390,8 @@ https://your-pi.ts.net/bot
 - In a repo, `serve` needs no args — the **port** comes from `.pideploy.conf` and the **path** defaults to `/<app_name>`. Override with `--path /custom`.
 - **Caveat:** the app must tolerate a sub-path (relative links, or a configurable base URL). If it can't, use **`--port-mode`** to give it the root of its own HTTPS port: `pideploy serve 8080 --port-mode` → `https://your-pi.ts.net:8080/`.
 - `pideploy unserve` (same flags) removes just that one app's route; the others stay up.
+
+**Forgot an app's URL?** Run **`pideploy url`** inside its repo — it prints the live endpoint (the served `https://…` URL if exposed, otherwise the local `http://127.0.0.1:<port>/` with a reminder to `serve`). `pideploy open` launches it in a browser.
 
 > Tailscale is only the **access** layer here — it never affects *where* a deploy runs (that's the runner label).
 
