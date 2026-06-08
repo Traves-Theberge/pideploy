@@ -13,6 +13,8 @@
 
 `git push` → builds with Docker on your Pi → shows up in Portainer → reachable anywhere over Tailscale.
 
+**👉 New here? Read [START-HERE.md](START-HERE.md)** — a step-by-step setup for the whole thing.
+
 [Quick start](#-60-second-quick-start) · [Setup](#-prerequisites--setup) · [How it works](#-how-it-works) · [Commands](#-command-reference) · [Security](#-security-model) · [AI-ready](#-ai-ready)
 
 ![ci](https://github.com/Traves-Theberge/pideploy/actions/workflows/ci.yml/badge.svg)
