@@ -491,18 +491,6 @@ Still stuck? `redeploy doctor` pinpoints the broken prerequisite.
 
 ---
 
-## 📋 Roadmap
-
-See [`PLAN.md`](PLAN.md) for the full plan. Highlights:
-
-- ✅ Path-based multi-app serve (multiple apps under one host) — **done**
-- `redeploy setup` — one-command host bootstrap
-- Org-level runner mode (one runner, many repos)
-- Optional Portainer-API Git-stack integration
-- CI (tests + shellcheck) on GitHub
-
----
-
 ## 📜 License
 
 MIT — see [`LICENSE`](LICENSE).
